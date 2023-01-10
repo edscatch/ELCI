@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>net.zhuoweizhang</groupId>
-    <artifactId>raspberryjuice</artifactId>
+    <groupId>net.artemisr</groupId>
+    <artifactId>ELCI</artifactId>
     <version>1.12.1</version>
-    <name>RaspberryJuice</name>
+    <name>ELCILegacy</name>
     <repositories>
         <repository>
             <id>spigot-repo</id>
@@ -43,21 +43,21 @@
 
         <!--Test Dependencies-->
         <dependency>
-            <groupId>info.cukes</groupId>
+            <groupId>io.cucumber</groupId>
             <artifactId>cucumber-testng</artifactId>
-            <version>1.2.5</version>
+            <version>7.8.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>info.cukes</groupId>
+            <groupId>io.cucumber</groupId>
             <artifactId>cucumber-java</artifactId>
-            <version>1.2.5</version>
+            <version>7.8.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jmockit</groupId>
             <artifactId>jmockit</artifactId>
-            <version>1.23</version>
+            <version>1.49</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

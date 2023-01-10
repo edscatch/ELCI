@@ -6,10 +6,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="elcilegacy" />
         <module name="raspberryjuice" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="elcilegacy" target="1.7" />
       <module name="raspberryjuice" target="1.6" />
     </bytecodeTargetLevel>
   </component>
