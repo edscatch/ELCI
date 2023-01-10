@@ -60,3 +60,5 @@ tmp/
 tags
 .vscode
 /.pydevproject
+/src/main/resources/
+/.idea/

@@ -1,7 +1,7 @@
-author: Zhuowei
+author: Zhuowei + Artemis
 database: false
 description: Implementation of the Minecraft PI modding API
-main: net.zhuoweizhang.raspberryjuice.RaspberryJuicePlugin
-name: RaspberryJuice
+main: net.rozukke.elci.ELCIPlugin
+name: ELCI
 startup: postworld
 version: '1.12.1'
