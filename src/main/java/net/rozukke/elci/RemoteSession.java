@@ -114,7 +114,7 @@ public class RemoteSession {
 	}
 
 	protected void handleLine(String line) {
-		System.out.println(line);
+//		System.out.println(line);
 		String methodName = line.substring(0, line.indexOf("("));
 		//split string into args, handles , inside " i.e. ","
 		String[] args = line.substring(line.indexOf("(") + 1, line.length() - 1).split(",");
