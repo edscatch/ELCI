@@ -1,4 +1,5 @@
 # default config.yml
+# edited by rozukke to remove mentions of PI specific functionality
 
 # The host name and port to listen on
 # hostname - ip address or hostname to allow connections from, default is "0.0.0.0" 
