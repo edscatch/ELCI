@@ -1,3 +1,5 @@
+// Edited by rozukke from original file to remove unnecessary functionality and change naming
+
 package net.rozukke.elci;
 
 import org.bukkit.Bukkit;
