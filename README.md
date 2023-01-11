@@ -1,64 +1,19 @@
-# RaspberryJuice
+# ELCI
 
-A Bukkit plugin which implements the Minecraft Pi Socket API.
+A Bukkit plugin which implements the [MCPI](https://github.com/martinohanlon/mcpi) API with some modifications, 
+including new commands and removal of Raspberry Pi specific functionality. It is
+designed to run with [this modified version](https://github.com/rozukke/mcpi-elci) of MCPI.
 
 ## Commands
 
 ### Commands supported
 
- - world.get/setBlock
- - world.getBlockWithData
- - world.setBlocks
- - world.getPlayerIds
- - world.getBlocks
- - chat.post
- - events.clear
- - events.block.hits
- - player.getTile
- - player.setTile
- - player.getPos
- - player.setPos
- - world.getHeight
- - entity.getTile
- - entity.setTile
- - entity.getPos
- - entity.setPos
-
-### Commands that can't be supported
-
- - Camera angles
-
-### Extra commands
-
- - getBlocks(x1,y1,z1,x2,y2,z2) has been implemented
- - getDirection, getRotation, getPitch functions - get the 'direction' players and entities are facing
- - setDirection, setRotation, setPitch functions - set the 'direction' players and entities are facing
- - getPlayerId(playerName) - get the entity of a player by name
- - pollChatPosts() - get events back for posts to the chat
- - setSign(x,y,z,block type id,data,line1,line2,line3,line4)
-   - Wall signs (id=68 or block.SIGN_WALL.id) require data for facing direction 2=north, 3=south, 4=west, 5=east
-   - Standing signs (id=63 or block.SIGN_STANDING.id) require data for facing rotation (0-15) 0=south, 4=west, 8=north, 12=east
- - spawnEntity(x,y,z,entity) - creates an entity and returns its entity id. see entity.py for list.
- - getEntityTypes - returns all the entities supported by the server.
- - entity.getName(id) - get a player name for entity id. Reverse of getPlayerId(playerName)
- - getEntities - get all currently loaded entities list by optional entity type id
- - removeEntity - removes entity with specified id
- - removeEntities - removes all currently loaded entities by optional entity type id
- - entity.getEntities - get currently loaded entities list near specified entity by optional entity type id
- - entity.removeEntities - removes currently loaded entities near specified entity, by optional entity type id
- - player.getEntities - get currently loaded entities list near specified player entity id by optional entity type id
- - player.removeEntities - removes currently loaded entities near specified player entity id, by optional entity type id
- - events.pollProjectileHits - get events back of arrow hit
- - player.pollProjectileHits - get events back of arrow hit for the player
- - player.pollBlockHits - get block hits for the player
- - player.pollChatPosts - get events back for posts to the chat for the player
- - player.clearEvents - clear events for the player
- - entity.pollProjectileHits - get events back of arrow hit for an entity
- - entity.pollBlockHits - get block hits for an entity
- - entity.pollChatPosts - get events back for posts to the chat for an entity
- - entity.clearEvents - clear events for this entity
- 
-Note - extra features are NOT guaranteed to be maintained in future releases, particularly if updates are made to the original Pi API which replace the functionality
+This release supports all commands from the [root repository](https://github.com/zhuowei/RaspberryJuice)
+excluding block hits, projectiles and events. It also supports these additional performant
+commands:
+- `getBlocksWithData` to avoid multiple sequential `getBlockWithData` calls
+- `getHeights` to avoid sequential `getHeight` calls
+- `doCommand` (requires player on server) performs an ingame command such as `/tp 0 0 0 ` (`/` is not required)
 
 ## Config
 
@@ -66,22 +21,14 @@ Modify config.yml:
 
  - hostname: - ip address or hostname to allow connections from, default is "0.0.0.0" (any). "localhost" would prevent remote clients from connecting.
  - port: 4711 - the default tcp port can be changed in config.yml
- - location: RELATIVE - determine whether locations are RELATIVE to the spawn point (default like pi) or ABSOLUTE
- - hitclick: RIGHT - determine whether hit events are triggered by LEFT clicks, RIGHT clicks or BOTH 
-
-## Libraries
-
-To use the extra features an modded version of the java and python libraries that were originally supplied by Mojang with the Pi is required, [github.com/zhuowei/RaspberryJuice/tree/master/src/main/resources/mcpi](https://github.com/zhuowei/RaspberryJuice/tree/master/src/main/resources/mcpi).  
-
-You only need the modded libraries to use the extra features, the original libraries supplied with Minecraft Pi edition still work, you just wont be able to use the extra features
 
 ## Build
 
-To build RaspberryJuice, [download and install Maven](https://maven.apache.org/install.html), clone the repository, run `mvn package':
+To build ELCI, [download and install Maven](https://maven.apache.org/install.html), clone the repository, run `mvn package':
 
 ```
-git clone https://github.com/zhuowei/RaspberryJuice
-cd RaspberryJuice
+git clone https://github.com/rozukke/ELCI
+cd ELCI
 mvn package
 ```
 
@@ -106,6 +53,9 @@ mvn package
  - 1.1 - Initial release
 
 ## Contributors
+
+- [rozukke](https://github.com/zhuowei/RaspberryJuice) (edited  version)
+
 
  - [zhuowei](https://github.com/zhuowei)
  - [martinohanlon](https://github.com/martinohanlon)
