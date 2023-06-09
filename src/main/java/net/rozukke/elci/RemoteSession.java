@@ -81,18 +81,7 @@ public class RemoteSession {
 		this.out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), UTF_8));
 		startThreads();
 		plugin.getLogger().info("Opened connection to" + socket.getRemoteSocketAddress() + ".");  
-		InputStream inputStream = socket.getInputStream();
-		byte[] p = new byte[100000];
-		inputStream.read(p);
-		BigInteger bigP = new BigInteger(p);
-		inputStream.close();
-
-		inputStream = socket.getInputStream();
-		byte[] g = new byte[100000];
-		inputStream.read(g);
-		BigInteger bigG = new BigInteger(g);
-		inputStream.close();
-
+		
 		plugin.getLogger().info("Im going to kill myself");
 
 
@@ -101,6 +90,43 @@ public class RemoteSession {
 
 		//FIXME this is where the client connects.
 		try {
+			InputStream inputStream = socket.getInputStream();
+			// byte[] p = new byte[100000];
+			
+			// BigInteger bigP = new BigInteger(p);
+			// inputStream.close();
+
+			// inputStream = socket.getInputStream();
+			// byte[] g = new byte[100000];
+			// inputStream.read(g);
+			// BigInteger bigG = new BigInteger(g);
+			// inputStream.close();
+
+			byte[] clientData = new byte[100000];
+			plugin.getLogger().info("what awaits us after death? i fear there is something, for the vast nothing is preferable to th endless punishment of consciousness.");
+			inputStream = socket.getInputStream();
+			inputStream.read(clientData);
+			inputStream.close();
+			plugin.getLogger().info("Got a gun so big");
+			String clientDataString = clientData.toString();
+			plugin.getLogger().info("recieved P: " + clientDataString);
+
+			String[] clientDataStringArr = clientDataString.split("\n---END P---\n");
+			byte[] p = clientDataStringArr[0].getBytes();
+			BigInteger bigP = new BigInteger(p);
+
+			plugin.getLogger().info("recieved P" + clientDataStringArr[0]);
+
+			clientDataStringArr = clientDataStringArr[1].split("\n---END G---\n");
+			byte[] g = clientDataStringArr[0].getBytes();
+			BigInteger bigG = new BigInteger(g);
+
+			plugin.getLogger().info("recieved G" +clientDataStringArr[0]);
+			
+			byte[] clientPublicKeyBytes = clientDataStringArr[1].getBytes();
+
+			plugin.getLogger().info(clientDataStringArr[1]);
+
 			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("DH");
 			DHParameterSpec dhSpec = new DHParameterSpec(bigP, bigG);
 			keyPairGenerator.initialize(dhSpec);
@@ -111,12 +137,6 @@ public class RemoteSession {
 			byte[] encodedPublicKey = publicKey.getEncoded();
 			outputStream.write(encodedPublicKey);
 			
-			
-			byte[] clientPublicKeyBytes = new byte[100000];
-			inputStream = socket.getInputStream();
-			inputStream.read(clientPublicKeyBytes);
-			inputStream.close();
-
 			KeyFactory keyFactory = KeyFactory.getInstance("DH");
 			X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(clientPublicKeyBytes);
 			PublicKey clientPublicKey = keyFactory.generatePublic(x509KeySpec);
@@ -126,6 +146,11 @@ public class RemoteSession {
 			byte[] sharedSecret = keyAgreement.generateSecret();
 
 		} catch (Exception e) {
+			// if the server thread is still running raise an error
+			if (running) {
+				plugin.getLogger().warning("Error creating new connection");
+				e.printStackTrace();
+			}
 		}
 
 	}
