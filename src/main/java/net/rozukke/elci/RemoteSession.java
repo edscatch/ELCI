@@ -20,6 +20,15 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Iterator;
 
+import javax.crypto.KeyAgreement;
+import javax.crypto.spec.DHParameterSpec;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.*;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.math.BigInteger;
+
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class RemoteSession {
@@ -71,7 +80,54 @@ public class RemoteSession {
 		this.in = new BufferedReader(new InputStreamReader(socket.getInputStream(), UTF_8));
 		this.out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), UTF_8));
 		startThreads();
-		plugin.getLogger().info("Opened connection to" + socket.getRemoteSocketAddress() + ".");
+		plugin.getLogger().info("Opened connection to" + socket.getRemoteSocketAddress() + ".");  
+		InputStream inputStream = socket.getInputStream();
+		byte[] p = new byte[100000];
+		inputStream.read(p);
+		BigInteger bigP = new BigInteger(p);
+		inputStream.close();
+
+		inputStream = socket.getInputStream();
+		byte[] g = new byte[100000];
+		inputStream.read(g);
+		BigInteger bigG = new BigInteger(g);
+		inputStream.close();
+
+		plugin.getLogger().info("Im going to kill myself");
+
+
+
+
+
+		//FIXME this is where the client connects.
+		try {
+			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("DH");
+			DHParameterSpec dhSpec = new DHParameterSpec(bigP, bigG);
+			keyPairGenerator.initialize(dhSpec);
+			KeyPair keyPair = keyPairGenerator.generateKeyPair();
+			PublicKey publicKey = keyPair.getPublic();
+			PrivateKey privateKey = keyPair.getPrivate();
+			OutputStream outputStream = socket.getOutputStream();
+			byte[] encodedPublicKey = publicKey.getEncoded();
+			outputStream.write(encodedPublicKey);
+			
+			
+			byte[] clientPublicKeyBytes = new byte[100000];
+			inputStream = socket.getInputStream();
+			inputStream.read(clientPublicKeyBytes);
+			inputStream.close();
+
+			KeyFactory keyFactory = KeyFactory.getInstance("DH");
+			X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(clientPublicKeyBytes);
+			PublicKey clientPublicKey = keyFactory.generatePublic(x509KeySpec);
+			KeyAgreement keyAgreement = KeyAgreement.getInstance("DH");
+			keyAgreement.init(privateKey);
+			keyAgreement.doPhase(clientPublicKey, true);
+			byte[] sharedSecret = keyAgreement.generateSecret();
+
+		} catch (Exception e) {
+		}
+
 	}
 
 	protected void startThreads() {
@@ -113,7 +169,7 @@ public class RemoteSession {
 		}
 	}
 
-	protected void handleLine(String line) {
+	protected void handleLine(String line) { //TODO this is where to decode the message.
 //		System.out.println(line);
 		String methodName = line.substring(0, line.indexOf("("));
 		//split string into args, handles , inside " i.e. ","
