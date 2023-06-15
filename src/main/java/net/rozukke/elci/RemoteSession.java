@@ -17,17 +17,19 @@ import org.bukkit.util.Vector;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayDeque;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Iterator;
 
 import javax.crypto.KeyAgreement;
 import javax.crypto.spec.DHParameterSpec;
-import java.io.InputStream;
-import java.io.OutputStream;
+
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.math.BigInteger;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -74,6 +76,8 @@ public class RemoteSession {
 	}
 
 	public void init() throws IOException {
+		// Security.setProperty("crypto.policy", "unlimited");
+		
 		socket.setTcpNoDelay(true);
 		socket.setKeepAlive(true);
 		socket.setTrafficClass(0x10);
@@ -90,52 +94,63 @@ public class RemoteSession {
 
 		//FIXME this is where the client connects.
 		try {
-			InputStream inputStream = socket.getInputStream();
-			// byte[] p = new byte[100000];
-			
-			// BigInteger bigP = new BigInteger(p);
-			// inputStream.close();
+			int maxKeySize = javax.crypto.Cipher.getMaxAllowedKeyLength("DH");
+			System.out.println("Max Key Size for AES : " + maxKeySize);	
+			// InputStream inputStream = socket.getInputStream();
+			// Security.addProvider(new BouncyCastleProvider());
 
+			// byte[] clientData = new byte[1000000000];
 			// inputStream = socket.getInputStream();
-			// byte[] g = new byte[100000];
-			// inputStream.read(g);
-			// BigInteger bigG = new BigInteger(g);
-			// inputStream.close();
 
-			byte[] clientData = new byte[100000];
-			plugin.getLogger().info("what awaits us after death? i fear there is something, for the vast nothing is preferable to th endless punishment of consciousness.");
-			inputStream = socket.getInputStream();
-			inputStream.read(clientData);
-			inputStream.close();
-			plugin.getLogger().info("Got a gun so big");
-			String clientDataString = clientData.toString();
+			plugin.getLogger().info("ted kaczynski did nothing wrong (:");
+			// inputStream.read(clientData);
+			plugin.getLogger().info("killing myself with a .50 cal");
+			String clientDataString = this.in.readLine();
 			plugin.getLogger().info("recieved P: " + clientDataString);
+			clientDataString = clientDataString.replace("\n", "").replace("\r", "");
 
-			String[] clientDataStringArr = clientDataString.split("\n---END P---\n");
+			String[] clientDataStringArr = clientDataString.split("---END P---");
+			String temp = clientDataStringArr[0].substring(0, clientDataStringArr[0].length() - 5);
 			byte[] p = clientDataStringArr[0].getBytes();
-			BigInteger bigP = new BigInteger(p);
+			BigInteger bigP = new BigInteger(clientDataStringArr[0]);
 
 			plugin.getLogger().info("recieved P" + clientDataStringArr[0]);
 
-			clientDataStringArr = clientDataStringArr[1].split("\n---END G---\n");
+			clientDataStringArr = clientDataStringArr[1].split("---END G---");
 			byte[] g = clientDataStringArr[0].getBytes();
-			BigInteger bigG = new BigInteger(g);
+			BigInteger bigG = new BigInteger(clientDataStringArr[0]);
 
 			plugin.getLogger().info("recieved G" +clientDataStringArr[0]);
+
+			String clientKeyStr = clientDataStringArr[1].replace("\n", "").replace("\r", "");
+			clientKeyStr = clientKeyStr.substring(26, clientKeyStr.length() - 24);
 			
-			byte[] clientPublicKeyBytes = clientDataStringArr[1].getBytes();
 
-			plugin.getLogger().info(clientDataStringArr[1]);
+			
+			byte[] clientPublicKeyBytes = Base64.getDecoder().decode(clientKeyStr);
+			// byte[] clientPublicKeyBytes = clientDataStringArr[1].getBytes(UTF_8);
 
+			int keySize = bigP.bitLength();
+			
+			if (keySize < 512 || keySize > 8192 || keySize % 64 != 0) {
+				throw new IllegalArgumentException("Invalid DH key size: " + keySize);
+			}
+			plugin.getLogger().info(clientDataStringArr[1] + " test");
+			plugin.getLogger().info(clientKeyStr);
 			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("DH");
-			DHParameterSpec dhSpec = new DHParameterSpec(bigP, bigG);
-			keyPairGenerator.initialize(dhSpec);
+			DHParameterSpec dhSpec = new DHParameterSpec(bigP, bigG, keySize);
+		
+			SecureRandom random = new SecureRandom();
+			byte bytes[] = new byte[20];
+      		random.nextBytes(bytes);
+			keyPairGenerator.initialize(dhSpec, random);
 			KeyPair keyPair = keyPairGenerator.generateKeyPair();
 			PublicKey publicKey = keyPair.getPublic();
 			PrivateKey privateKey = keyPair.getPrivate();
 			OutputStream outputStream = socket.getOutputStream();
 			byte[] encodedPublicKey = publicKey.getEncoded();
 			outputStream.write(encodedPublicKey);
+			plugin.getLogger().info(encodedPublicKey.toString());
 			
 			KeyFactory keyFactory = KeyFactory.getInstance("DH");
 			X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(clientPublicKeyBytes);
@@ -144,6 +159,8 @@ public class RemoteSession {
 			keyAgreement.init(privateKey);
 			keyAgreement.doPhase(clientPublicKey, true);
 			byte[] sharedSecret = keyAgreement.generateSecret();
+
+			plugin.getLogger().info(sharedSecret.toString());
 
 		} catch (Exception e) {
 			// if the server thread is still running raise an error
