@@ -69,6 +69,9 @@ public class RemoteSession {
 
 	private Player attachedPlayer = null;
 
+	private byte[] encKey;
+	private byte[] macKey;
+
 	public RemoteSession(ELCIPlugin plugin, Socket socket) throws IOException {
 		this.socket = socket;
 		this.plugin = plugin;
@@ -81,12 +84,18 @@ public class RemoteSession {
 		socket.setTcpNoDelay(true);
 		socket.setKeepAlive(true);
 		socket.setTrafficClass(0x10);
+		encKey = getKey();
+		macKey = getKey();
+
+
+	}
+
+	private byte[] getKey() throws IOException {
 		this.in = new BufferedReader(new InputStreamReader(socket.getInputStream(), UTF_8));
 		this.out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), UTF_8));
 		startThreads();
 		plugin.getLogger().info("Opened connection to" + socket.getRemoteSocketAddress() + ".");  
 		
-		plugin.getLogger().info("Im going to kill myself");
 
 
 
@@ -95,29 +104,17 @@ public class RemoteSession {
 		//FIXME this is where the client connects.
 		try {
 			int maxKeySize = javax.crypto.Cipher.getMaxAllowedKeyLength("DH");
-			System.out.println("Max Key Size for AES : " + maxKeySize);	
-			// InputStream inputStream = socket.getInputStream();
-			// Security.addProvider(new BouncyCastleProvider());
-
-			// byte[] clientData = new byte[1000000000];
-			// inputStream = socket.getInputStream();
-
-			plugin.getLogger().info("ted kaczynski did nothing wrong (:");
-			// inputStream.read(clientData);
-			plugin.getLogger().info("killing myself with a .50 cal");
 			String clientDataString = this.in.readLine();
 			plugin.getLogger().info("recieved P: " + clientDataString);
 			clientDataString = clientDataString.replace("\n", "").replace("\r", "");
 
 			String[] clientDataStringArr = clientDataString.split("---END P---");
-			String temp = clientDataStringArr[0].substring(0, clientDataStringArr[0].length() - 5);
 			byte[] p = clientDataStringArr[0].getBytes();
 			BigInteger bigP = new BigInteger(clientDataStringArr[0]);
 
 			plugin.getLogger().info("recieved P" + clientDataStringArr[0]);
 
 			clientDataStringArr = clientDataStringArr[1].split("---END G---");
-			byte[] g = clientDataStringArr[0].getBytes();
 			BigInteger bigG = new BigInteger(clientDataStringArr[0]);
 
 			plugin.getLogger().info("recieved G" +clientDataStringArr[0]);
@@ -128,14 +125,11 @@ public class RemoteSession {
 
 			
 			byte[] clientPublicKeyBytes = Base64.getDecoder().decode(clientKeyStr);
-			// byte[] clientPublicKeyBytes = clientDataStringArr[1].getBytes(UTF_8);
-
 			int keySize = bigP.bitLength();
 			
 			if (keySize < 512 || keySize > 8192 || keySize % 64 != 0) {
 				throw new IllegalArgumentException("Invalid DH key size: " + keySize);
 			}
-			plugin.getLogger().info(clientDataStringArr[1] + " test");
 			plugin.getLogger().info(clientKeyStr);
 			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("DH");
 			DHParameterSpec dhSpec = new DHParameterSpec(bigP, bigG, keySize);
@@ -161,6 +155,7 @@ public class RemoteSession {
 			byte[] sharedSecret = keyAgreement.generateSecret();
 
 			plugin.getLogger().info(sharedSecret.toString());
+			return sharedSecret;
 
 		} catch (Exception e) {
 			// if the server thread is still running raise an error
@@ -169,7 +164,7 @@ public class RemoteSession {
 				e.printStackTrace();
 			}
 		}
-
+		return null;
 	}
 
 	protected void startThreads() {
